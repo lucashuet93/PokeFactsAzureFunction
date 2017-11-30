@@ -14,7 +14,7 @@ namespace PokeFactsAzureFunction
         private static readonly string StorageConnectionString = Environment.GetEnvironmentVariable(@"AzureWebJobsStorage");
 
         [FunctionName("PokeFacts")]
-        public static async Task Run([TimerTrigger("0 */1 * * * *")]TimerInfo myTimer, TraceWriter log)
+        public static async Task Run([TimerTrigger("0 0 */1 * * *")]TimerInfo myTimer, TraceWriter log)
         {
             log.Info($"C# Timer trigger function executed at: {DateTime.Now}");
 
