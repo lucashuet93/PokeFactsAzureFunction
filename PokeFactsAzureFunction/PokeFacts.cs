@@ -5,6 +5,7 @@ using System.Net.Http;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System.Threading.Tasks;
+using System.Text;
 
 namespace PokeFactsAzureFunction
 {
@@ -20,17 +21,23 @@ namespace PokeFactsAzureFunction
             var storageClient = CloudStorageAccount.Parse(StorageConnectionString).CreateCloudBlobClient();
             var pokeweightsContainer = storageClient.GetContainerReference(@"pokeweights");
             pokeweightsContainer.CreateIfNotExists();
+        }
 
+        public async static Task GetAndSendPokemon()
+        {
             int numPokemon = 801;
             Random rnd = new Random();
             int randomPokedexNumber = rnd.Next(1, numPokemon);
+            string pokeEndpoint = $"http://pokeapi.co/api/v2/pokemon/{randomPokedexNumber}";
+            string logicAppEndpoint = "https://prod-03.westus.logic.azure.com:443/workflows/542e2b544d5349768f8860b72b00ed17/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QLpmQPsC-Gecu3SYxz1FQDTda1YLjAkdWxrTopRKsaM";
 
-            using (var pokeApiClient = new HttpClient())
+            using (var client = new HttpClient())
             {
-                var result = await pokeApiClient.GetAsync($"http://pokeapi.co/api/v2/pokemon/{randomPokedexNumber}");
-                var randomPokemon = await result.Content.ReadAsStringAsync();
+                var pokePayload = await client.GetAsync(new Uri(pokeEndpoint));
+                string pokeResult = await pokePayload.Content.ReadAsStringAsync();
+                var content = new StringContent(pokeResult, Encoding.UTF8, "application/json");
+                var logicAppResult = await client.PostAsync(logicAppEndpoint, content);
             }
-
         }
     }
 }
